@@ -1,8 +1,7 @@
 # DynamicStackAdapter
-This library helps to achieve a stack behaviour for RecyclerViews. It includes a Builder which handles all the
-creation and configuration of the Adapter. </br>
-![Imgur](http://i.imgur.com/oAfmXdE.gif)</br>
-Keep in mind that scrolling is disabled because it would interfere with the Drag&Drop mechanics.
+This library helps to achieve a stack behaviour for RecyclerViews. The user can move, delete and resize the items on the stack if desired. It works with the standard RecyclerView from the android support library.</br></br>
+![Imgur](http://i.imgur.com/oAfmXdE.gif)</br></br>
+Note: Keep in mind that scrolling is disabled because it would interfere with the Drag&Drop mechanics.
 
 # Setup
 
@@ -19,13 +18,13 @@ Add jitpack.io to your repositories build.gradle file:
 And then add the dependency
 ```
 		dependencies {
+		...
 		compile 'com.github.TreesAreOp:dynamic-stack-adapter:v0.3-alpha'
 	}
 ```
 
 # Usage
-To configure the Dynamic Stack Adapter you should use the DynamicStackBuilder class. The following example shows 
-a minimum configuration of the RecyclerView
+You should use the DynamicStackBuilder class to set up the stack behaviour. This Library works without it but using the Builder makes the configuration process less complicated and configures the used RecyclerView appropiately. The following example shows a minimum configuration of the RecyclerView through the Builder:
 ```java
 final MyAdapter adapter = (MyAdapter) new DynamicStackBuilder()
                 .stackRecyclerView(stackView)
@@ -35,13 +34,24 @@ final MyAdapter adapter = (MyAdapter) new DynamicStackBuilder()
                 .build();
 ```
 You need to provide your own DynamicStackAdapter and DynamicStackViewHolder as well as a layout for the item views. Your custom Adapter
-needs to extend the DynamicStackAdapter and you need to specify your Item Type T and your custom DynamicStackViewHolder VH. 
+needs to extend the DynamicStackAdapter and you need to specify your Item Type T and your custom DynamicStackViewHolder VH. The withCreateViewHolder and withBindViewHolder methods can be implemented like usual.
+Minimal example:
 ```java
-public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
-```
-Subclass example:
-```java
-class MyAdapter extends DynamicStackAdapter<DataItem, MyViewHolder>
+class MyAdapter extends DynamicStackAdapter<Data, MyViewHolder> {
+    public MyAdapter(RecyclerView container, Class holderClass) {
+        super(container, holderClass);
+    }
+
+    @Override
+    public void withCreateViewHolder(MyViewHolder myViewHolder) {
+	//this method is called when a ViewHolder is created
+    }
+
+    @Override
+    public void withBindViewHolder(MyViewHolder myViewHolder, int i, Data data) {
+    	//this method is called when a ViewHolder is bound to a position
+    }
+}
 ```
 
 A custom DynamicStackViewHolder could be implemented like this:
@@ -49,33 +59,31 @@ A custom DynamicStackViewHolder could be implemented like this:
 class MyViewHolder extends DynamicStackViewHolder {
 
     //you can reference all your views of the item layout here
-    TextView text;
 
     protected MyViewHolder(View itemView, DynamicStackAdapter adapter) {
         super(itemView, adapter);
-        df = new DecimalFormat("#");
     }
 
-    //here you get your views from the layout
     @Override
     protected void findCustomViews(View view) {
-        text = (TextView) view.findViewById(R.id.content);
+       //here you get your views from the layout with view.findViewByID(...)
     }
 
-    //this method is called when the user resizes the item AND when a new item is added
     @Override
     protected void updateOnResize(int i, Object o, float percentage) {
-        text.setText("percentage: " + df.format(percentage * 100f) + "%");
+        //this method is called when the user resizes the item AND when a new item is added
     }
 
 }
 ```
 And thats basically all you need to know. 
 1. extend DynamicStackAdapter and DynamicStackViewHolder and implement your own versions
-2. run the builder
+2. run the builder and set up your RecyclerView, DynamicStackAdapter and DynamicStackViewHolder
 
-Through the builder you can customize the Adapter, ViewHolder and RecyclerView. All of the following commands are optional. 
-Most of them are self explanatory. You can read the documentation if anything is unclear. Default values will be used if you don't set those values yourself.
+A working example can be found in the app folder.
+</br>
+As mentioned before the builder allows you to customize the Adapter, ViewHolder and RecyclerView. All commands are listed below.
+Most of them are self explanatory but the documentation should provide more insight if anything is unclear. Default values will be used if the optional methods are not executed.
 ```java
 final MyAdapter adapter = (MyAdapter) new DynamicStackBuilder() //reqired
                 .stackRecyclerView(stackView) //reqired
@@ -94,9 +102,9 @@ final MyAdapter adapter = (MyAdapter) new DynamicStackBuilder() //reqired
 ```
 
 ## Note:
-I highly recommend not using any margins for your item views! 
-if you really must use margin you can look into the setPixelPadding method (which is just a workaround for now) 
-or try to encapsulate the item view in a layout and use margin on the parent layout. Heres an example:
+I highly recommend not using any margins for your item views because some height calculations could become incorrect! 
+if you really must use margins you can look into the setPixelPadding method (which is just a workaround for now) 
+or try to encapsulate the item view in a parent layout and then add your margins to the actual (now child) item layout. Heres an example:
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent
