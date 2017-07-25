@@ -19,7 +19,7 @@ Add jitpack.io to your repositories build.gradle file:
 And then add the dependency
 ```
 		dependencies {
-		compile 'com.github.User:Repo:Tag'
+		compile 'com.github.TreesAreOp:dynamic-stack-adapter:v0.3-alpha'
 	}
 ```
 
