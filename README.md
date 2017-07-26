@@ -30,7 +30,7 @@ final MyAdapter adapter = (MyAdapter) new DynamicStackBuilder()
                 .stackRecyclerView(stackView)
                 .withAdapterType(MyAdapter.class)
                 .withViewHolderType(MyViewHolder.class)
-                .withItemLayoutID(R.layout.item_layout)
+                .withItemLayoutID(R.layout.item_layout)rrrrr
                 .build();
 ```
 You need to provide your own DynamicStackAdapter and DynamicStackViewHolder as well as a layout for the item views. Your custom Adapter
@@ -100,14 +100,37 @@ final MyAdapter adapter = (MyAdapter) new DynamicStackBuilder() //reqired
                 .setDataSet(items) //optional
                 .build();
 ```
+If your application needs to handle orientation changes and other lifecycle related events
+you can use the DynamicStackSaveManager. Just call the save and load methods in the 
+ onSaveInstanceState and onRestoreInstanceState methods of your activity. The onRestoreInstanceState
+ method needs to be the protected one with only the Bundle parameter. Additionally the used Data class
+ needs to implement the java.io.Serializable Interface in order to allow saving and loading.
+
+```Java 
+@Override
+protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+    if (adapter != null) {
+        DynamicStackSaveManager.saveDynamicStackAdapter(outState, adapter);
+    }
+}
+
+@Override
+protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    super.onRestoreInstanceState(savedInstanceState);
+    if (savedInstanceState != null) {
+        DynamicStackSaveManager.restoreDynamicStackAdapter(savedInstanceState, adapter);
+    }
+}
+```
 
 ## Note:
 I highly recommend not using any margins for your item views because some height calculations could become incorrect! 
-if you really must use margins you can look into the setPixelPadding method (which is just a workaround for now) 
-or try to encapsulate the item view in a parent layout and then add your margins to the actual (now child) item layout. Heres an example:
+if you really must use margins you can look into the setPixelPadding method (which is just a workaround and brings other issues
+with it) or try to encapsulate the item view in a parent layout and then add your margins to the actual (now child) item layout. Heres an example:
 ```xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent
+    android:layout_width="match_parent"
     android:layout_height="50dp"  
     android:gravity="center">
 

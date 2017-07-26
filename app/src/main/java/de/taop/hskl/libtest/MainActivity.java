@@ -1,11 +1,9 @@
 package de.taop.hskl.libtest;
 
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
-import android.util.TypedValue;
 import android.view.View;
 import android.widget.TextView;
 
@@ -13,20 +11,22 @@ import java.text.DecimalFormat;
 
 import de.taop.hskl.dynamicStackAdapter.DynamicStackAdapter;
 import de.taop.hskl.dynamicStackAdapter.DynamicStackBuilder;
+import de.taop.hskl.dynamicStackAdapter.DynamicStackSaveManager;
 import de.taop.hskl.dynamicStackAdapter.DynamicStackViewHolder;
 
 public class MainActivity extends AppCompatActivity {
 
+    RecyclerView stackView;
+    MyAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        RecyclerView stackView = (RecyclerView) findViewById(R.id.stack);
+        stackView = (RecyclerView) findViewById(R.id.stack);
 
-
-        final MyAdapter adapter = (MyAdapter) new DynamicStackBuilder()
+        adapter = (MyAdapter) new DynamicStackBuilder()
                 .stackRecyclerView(stackView)
                 .withAdapterType(MyAdapter.class)
                 .withViewHolderType(MyViewHolder.class)
@@ -34,11 +34,8 @@ public class MainActivity extends AppCompatActivity {
                 .allowUserResizingItems(true)
                 .setAutoResizeItems(true)
                 .provideResizeAreaID(R.id.resize)
+                .setPixelPadding(0)
                 .build();
-
-        adapter.addItem(new Data());
-        adapter.addItem(new Data());
-        adapter.addItem(new Data());
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.floatingActionButton);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -47,8 +44,24 @@ public class MainActivity extends AppCompatActivity {
                 adapter.addItem(new Data());
             }
         });
-
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (adapter != null) {
+            DynamicStackSaveManager.saveDynamicStackAdapter(outState, adapter);
+        }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null) {
+            DynamicStackSaveManager.restoreDynamicStackAdapter(savedInstanceState, adapter);
+        }
+    }
+
 }
 
 class MyAdapter extends DynamicStackAdapter<Data, MyViewHolder> {
@@ -83,8 +96,8 @@ class MyViewHolder extends DynamicStackViewHolder {
     }
 
     @Override
-    protected void updateOnResize(int i, Object o, float percentage) {
-        text.setText("percentage: " + df.format(percentage * 100f) + "%");
+    public void updateOnResize(int i, Object o, float itemViewPercentage) {
+        text.setText("percentage: " + df.format(itemViewPercentage * 100f) + "%");
     }
 
 }

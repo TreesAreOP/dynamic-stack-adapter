@@ -1,10 +1,8 @@
 package de.taop.hskl.dynamicStackAdapter;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 
 import de.taop.hskl.dynamicStackAdapter.helpers.ItemTouchHelperViewHolder;
 
@@ -25,7 +23,7 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
     public int originalHeight;
     public boolean isExpanded = false;
     boolean allowUserResize;
-
+    float percentage;
     private View dynamicItemResize;
 
     protected DynamicStackViewHolder(final View itemView, final DynamicStackAdapter adapter) {
@@ -54,7 +52,7 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
                         accumulatedHeight = 0f;
                         for (int i = 0; i < adapter.getItemCount(); i++) {
                             if (i != getAdapterPosition()) {
-                                View item =  adapter.container.findViewHolderForAdapterPosition(i).itemView;
+                                View item = adapter.container.findViewHolderForAdapterPosition(i).itemView;
                                 accumulatedHeight += item.getHeight();
                             }
                         }
@@ -71,7 +69,7 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
                         float heightDiff = origY - me.getY();
 
                         if ((itemView.getLayoutParams().height + heightDiff) > adapter.minHeightPX) {
-                            if ((accumulatedHeight + itemView.getHeight() + heightDiff) <= adapter.container.getHeight()) {
+                            if ((accumulatedHeight + itemView.getHeight() + heightDiff) <= (adapter.container.getHeight() - adapter.marginPixels)) {
 
                                 itemView.getLayoutParams().height += heightDiff;
                                 if (adapter.reverseStack) {
@@ -80,7 +78,7 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
                                 }
                                 itemView.requestLayout();
                             } else {
-                                itemView.getLayoutParams().height = (int) (adapter.container.getHeight() - accumulatedHeight);
+                                itemView.getLayoutParams().height = (int) (adapter.container.getHeight() - accumulatedHeight - adapter.marginPixels);
                                 itemView.requestLayout();
                             }
 
@@ -90,22 +88,21 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
                             isExpanded = false;
                         }
 
-                        updateOnResize(DynamicStackViewHolder.this.getAdapterPosition(),
-                                adapter.getItem(DynamicStackViewHolder.this.getAdapterPosition()),
-                                calculateHeightPercentage());
+                        updateOnResizeInternal(DynamicStackViewHolder.this.getAdapterPosition(),
+                                adapter.getItem(DynamicStackViewHolder.this.getAdapterPosition()));
 
                     }
 
                     return true;
                 }
 
-
             });
         }
     }
 
     float calculateHeightPercentage() {
-        return itemView.getLayoutParams().height / (float) adapter.container.getHeight();
+        percentage = itemView.getLayoutParams().height / (adapter.container.getHeight() - adapter.marginPixels);
+        return percentage;
     }
 
     /**
@@ -118,14 +115,24 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
     protected abstract void findCustomViews(View itemView);
 
     /**
-     * You need to assign all your views which you want to use from the specified item layout here!
-     * E.g.: customView = itemView.findViewByID(R.id.myView);
+     * This method is internally called when a view is resized.
+     * Do not override this!
      *
-     * @param position         the position of the ViewHolder
-     * @param object           the object at the position
-     * @param sizeChangeAmount the percentage [0.0,1.0] of change in size since the resizing started
+     * @param position the position of the ViewHolder
+     * @param object   the object at the position
      */
-    protected abstract void updateOnResize(int position, Object object, float sizeChangeAmount);
+    void updateOnResizeInternal(int position, Object object) {
+        updateOnResize(position, object, calculateHeightPercentage());
+    }
+
+    /**
+     * This method is called when a view is resized.
+     *
+     * @param position           the position of the ViewHolder
+     * @param object             the object at the position
+     * @param itemViewPercentage the percentage [0.0,1.0] of the views height in relation to the recyclerViews height
+     */
+    public abstract void updateOnResize(int position, Object object, float itemViewPercentage);
 
     @Override
     public void onItemSelected() {

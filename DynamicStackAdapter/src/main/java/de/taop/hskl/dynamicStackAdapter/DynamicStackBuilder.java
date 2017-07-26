@@ -20,21 +20,19 @@ import de.taop.hskl.dynamicStackAdapter.helpers.SimpleItemTouchHelperCallback;
 
 public class DynamicStackBuilder<A extends DynamicStackAdapter, VH extends DynamicStackViewHolder> {
 
-    private Class<A> adapterType;
-    private Class<VH> viewHolderType;
-    private A adapter;
-    private RecyclerView rv;
-
     public static final int DEFAULT_MAX_ITEMS = 6;
-    public static final float DEFAULT_PIXEL_PADDING = 1.5f;
+    public static final int DEFAULT_PIXEL_PADDING = 0;
     public static final boolean DEFAULT_AUTO_RESIZE_ITEMS = false;
     public static final boolean DEFAULT_USER_RESIZE = false;
     public static final boolean DEFAULT_USER_MOVE = true;
     public static final boolean DEFAULT_USER_DELETE = true;
     public static final boolean DEFAULT_REVERSE_STACK = false;
-
+    private Class<A> adapterType;
+    private Class<VH> viewHolderType;
+    private A adapter;
+    private RecyclerView rv;
     private int maxItems;
-    private float pixelPadding;
+    private int pixelPadding;
     private List dataSet;
     private boolean autoResizeItems;
     private boolean userResize;
@@ -140,14 +138,17 @@ public class DynamicStackBuilder<A extends DynamicStackAdapter, VH extends Dynam
      * Sets the Padding of the recyclerview. This is used when calculating
      * the minimal allowed height of the items. A higher value means a lower
      * minimal height. Play with this value if your max item count doesn't match the
-     * shown number of items in your recyclerview. Note: negative values are
-     * allowed. By default, the value is set to {@value DEFAULT_PIXEL_PADDING}.
+     * shown number of items in your recyclerview or you specified a margin
+     * in your itemView. <b>Note that this is a workaround (hence the
+     * deprecated annotation). You should avoid using it because it will lead to some
+     * float errors!</b>By default, the value is set to {@value DEFAULT_PIXEL_PADDING}.
      *
      * @param pixelPadding the padding in pixel
      * @return this Builder for chaining
      * @see #setMaxItems(int)
      */
-    public DynamicStackBuilder setPixelPadding(float pixelPadding) {
+    @Deprecated
+    public DynamicStackBuilder setPixelPadding(int pixelPadding) {
         this.pixelPadding = pixelPadding;
         return this;
     }
@@ -197,7 +198,7 @@ public class DynamicStackBuilder<A extends DynamicStackAdapter, VH extends Dynam
      * items stack at the top. new items will be added on the bottom and
      * then "float" to the top. By default, the value is set to
      * {@value DEFAULT_REVERSE_STACK}.
-     *
+     * <p>
      * <b>NOT WORKING AT THE MOMENT</b>
      *
      * @param reverseStack Whether or not the stack is reversed

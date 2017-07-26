@@ -2,7 +2,6 @@ package de.taop.hskl.dynamicStackAdapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,24 +27,20 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
         implements ItemTouchHelperAdapter {
 
     public RecyclerView container;
-    private ArrayList<T> dataSet;
     protected SimpleItemTouchHelperCallback callback;
-
     int minHeightPX;
-
     float marginPixels;
     int maxItems;
     boolean autoResizeItems;
-
-    private float heightOfAllItems;
-
-    private ArrayList<VH> expandedNotSuitableItems;
-    private Class<? extends DynamicStackViewHolder> holderClass;
-    private VH vh;
     int resizeViewResourceID;
     boolean allowUserResize;
     int itemLayout;
     boolean reverseStack;
+    private ArrayList<T> dataSet;
+    private float heightOfAllItems;
+    private ArrayList<VH> expandedNotSuitableItems;
+    private Class<? extends DynamicStackViewHolder> holderClass;
+    private VH vh;
 
     protected DynamicStackAdapter(final RecyclerView container, Class<VH> holderClass) {
         dataSet = new ArrayList<>();
@@ -122,7 +117,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
         holder.itemView.post(new Runnable() {
             @Override
             public void run() {
-                holder.updateOnResize(holder.getAdapterPosition(), object, holder.calculateHeightPercentage());
+                holder.updateOnResizeInternal(holder.getAdapterPosition(), object);
             }
         });
 
@@ -210,7 +205,18 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     }
 
     /**
-     * Sets the Dataset for this Adapter.
+     * Gets the Dataset of this Adapter. Keep in mind
+     * that a reference to the list is returned!
+     *
+     * @return this adapters dataset
+     */
+    public ArrayList<T> getDataSet() {
+        return dataSet;
+    }
+
+    /**
+     * Sets the Dataset for this Adapter. Keep in mind
+     * that a reference to the list is used!
      *
      * @param dataSet a list containing items
      */
@@ -229,14 +235,14 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
         }
 
 
-        return (heightOfAllItems + minHeightPX) <= container.getHeight();
+        return (heightOfAllItems + minHeightPX) <= (container.getHeight() - marginPixels);
     }
 
     private boolean fitNewItemAndAdjustHeight() {
         float accumulatedHeight = 0f;
 
         if (!fitNewItem()) {
-            float extraHeight = heightOfAllItems + minHeightPX - container.getHeight();
+            float extraHeight = heightOfAllItems + minHeightPX - (container.getHeight() - marginPixels);
             expandedNotSuitableItems.clear();
             for (int i = 0; i < getItemCount(); i++) {
                 VH itemHolder = (VH) container.findViewHolderForAdapterPosition(i);
@@ -247,7 +253,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
 
                         itemHolder.isExpanded = itemHolder.itemView.getLayoutParams().height > minHeightPX;
 
-                        itemHolder.updateOnResize(i, getItem(i), itemHolder.calculateHeightPercentage());
+                        itemHolder.updateOnResizeInternal(i, getItem(i));
 
                         return true;
                     } else {
@@ -262,18 +268,18 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
             if (accumulatedHeight >= minHeightPX) {
 
                 float deletedHeight = 0.0f;
-                boolean fittetItem = false;
+                boolean fittedItem = false;
 
-                for (int j = 0; j < expandedNotSuitableItems.size() && !fittetItem; j++) {
+                for (int j = 0; j < expandedNotSuitableItems.size() && !fittedItem; j++) {
                     DynamicStackViewHolder vh = expandedNotSuitableItems.get(j);
                     deletedHeight += vh.itemView.getHeight() - minHeightPX;
                     vh.itemView.getLayoutParams().height = minHeightPX;
                     vh.itemView.requestLayout();
                     vh.isExpanded = false;
 
-                    vh.updateOnResize(vh.getAdapterPosition(), getItem(vh.getAdapterPosition()), vh.calculateHeightPercentage());
+                    vh.updateOnResizeInternal(vh.getAdapterPosition(), getItem(vh.getAdapterPosition()));
 
-                    fittetItem = (deletedHeight >= minHeightPX);
+                    fittedItem = (deletedHeight >= minHeightPX);
 
                 }
                 expandedNotSuitableItems.clear();
@@ -302,5 +308,6 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
         dataSet.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
         notifyItemMoved(fromPosition, toPosition);
     }
+
 
 }
