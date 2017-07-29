@@ -29,7 +29,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     public RecyclerView container;
     protected SimpleItemTouchHelperCallback callback;
     int minHeightPX;
-    float marginPixels;
+    int marginPixels;
     int maxItems;
     boolean autoResizeItems;
     int resizeViewResourceID;
@@ -37,7 +37,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     int itemLayout;
     boolean reverseStack;
     private ArrayList<T> dataSet;
-    private float heightOfAllItems;
+    private double heightOfAllItems;
     private ArrayList<VH> expandedNotSuitableItems;
     private Class<? extends DynamicStackViewHolder> holderClass;
     private VH vh;
@@ -79,8 +79,6 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
             e.printStackTrace();
         }
 
-        vh.originalWidth = view.getWidth();
-        vh.originalHeight = view.getHeight();
 
         vh.itemView.getLayoutParams().height = minHeightPX;
         vh.itemView.setMinimumHeight(minHeightPX);
@@ -114,12 +112,19 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
 
         withBindViewHolder(holder, position, object);
 
+        final boolean wasSaved = DynamicStackSaveManager.positionWasSavedBefore(position);
+
         holder.itemView.post(new Runnable() {
             @Override
             public void run() {
-                holder.updateOnResizeInternal(holder.getAdapterPosition(), object);
+                if (wasSaved) {
+                    holder.updateOnResizeInternalWithPercentage(holder.getAdapterPosition(), object, DynamicStackSaveManager.getPercentageOfPosition(position).floatValue());
+                } else {
+                    holder.updateOnResizeInternal(holder.getAdapterPosition(), object);
+                }
             }
         });
+
 
     }
 
@@ -151,6 +156,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
             public void run() {
                 if ((autoResizeItems && fitNewItemAndAdjustHeight())
                         || (!autoResizeItems && fitNewItem())) {
+                    DynamicStackSaveManager.removeSavedPosition(position);
                     dataSet.add(position, item);
                     notifyItemInserted(position);
                     notifyItemRangeChanged(position, getItemCount());
@@ -167,11 +173,13 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
      * @param item the item to add
      */
     public void addItem(final T item) {
+
         container.post(new Runnable() {
             @Override
             public void run() {
                 if ((autoResizeItems && fitNewItemAndAdjustHeight())
                         || (!autoResizeItems && fitNewItem())) {
+                    DynamicStackSaveManager.removeSavedPosition(dataSet.size());
                     dataSet.add(item);
                     notifyItemInserted(dataSet.size() - 1);
                 }
@@ -188,7 +196,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     public void removeItem(int adapterPosition) {
         dataSet.remove(adapterPosition);
         notifyItemRemoved(adapterPosition);
-
+        DynamicStackSaveManager.removeSavedPosition(adapterPosition);
     }
 
     /**
@@ -201,6 +209,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     public void removeItemRange(int startPosition, int endPosition) {
         for (int i = startPosition; i < endPosition; i++) {
             removeItem(i);
+            DynamicStackSaveManager.removeSavedPosition(i);
         }
     }
 
@@ -226,7 +235,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     }
 
     private boolean fitNewItem() {
-        heightOfAllItems = 0f;
+        heightOfAllItems = 0d;
         for (int i = 0; i < getItemCount(); i++) {
             if (container.findViewHolderForAdapterPosition(i) != null) {
                 View itemView = container.findViewHolderForAdapterPosition(i).itemView;
@@ -242,7 +251,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
         float accumulatedHeight = 0f;
 
         if (!fitNewItem()) {
-            float extraHeight = heightOfAllItems + minHeightPX - (container.getHeight() - marginPixels);
+            double extraHeight = heightOfAllItems + minHeightPX - (container.getHeight() - marginPixels);
             expandedNotSuitableItems.clear();
             for (int i = 0; i < getItemCount(); i++) {
                 VH itemHolder = (VH) container.findViewHolderForAdapterPosition(i);
@@ -267,7 +276,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
 
             if (accumulatedHeight >= minHeightPX) {
 
-                float deletedHeight = 0.0f;
+                double deletedHeight = 0.0d;
                 boolean fittedItem = false;
 
                 for (int j = 0; j < expandedNotSuitableItems.size() && !fittedItem; j++) {
@@ -280,21 +289,16 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
                     vh.updateOnResizeInternal(vh.getAdapterPosition(), getItem(vh.getAdapterPosition()));
 
                     fittedItem = (deletedHeight >= minHeightPX);
-
                 }
                 expandedNotSuitableItems.clear();
-
                 return true;
-
             }
-
 
         } else {
             return true;
         }
 
         return false;
-
     }
 
     @Override
@@ -306,6 +310,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     public void onItemMove(int fromPosition, int toPosition) {
         T prev = dataSet.remove(fromPosition);
         dataSet.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
+        DynamicStackSaveManager.swapSavedPosition(fromPosition, toPosition);
         notifyItemMoved(fromPosition, toPosition);
     }
 

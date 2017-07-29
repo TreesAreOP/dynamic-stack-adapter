@@ -243,6 +243,9 @@ public class DynamicStackBuilder<A extends DynamicStackAdapter, VH extends Dynam
      * @return a new instance of your custom DynamicStackAdapter.
      */
     public A build() {
+
+        DynamicStackSaveManager.initializeSaveManger(maxItems);
+
         if (adapterType == null || viewHolderType == null) {
             throw new BuilderNotReadyException("You need to specify the adapter type and viewHolder type!");
         }

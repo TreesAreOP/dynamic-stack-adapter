@@ -1,8 +1,12 @@
 package de.taop.hskl.dynamicStackAdapter;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import de.taop.hskl.dynamicStackAdapter.helpers.ItemTouchHelperViewHolder;
 
@@ -15,15 +19,13 @@ import de.taop.hskl.dynamicStackAdapter.helpers.ItemTouchHelperViewHolder;
  *
  * @author Adrian Bernhart
  */
-public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
+public abstract class DynamicStackViewHolder<T> extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
 
     protected final DynamicStackAdapter adapter;
 
-    public int originalWidth;
-    public int originalHeight;
     public boolean isExpanded = false;
     boolean allowUserResize;
-    float percentage;
+    BigDecimal percentage;
     private View dynamicItemResize;
 
     protected DynamicStackViewHolder(final View itemView, final DynamicStackAdapter adapter) {
@@ -89,7 +91,7 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
                         }
 
                         updateOnResizeInternal(DynamicStackViewHolder.this.getAdapterPosition(),
-                                adapter.getItem(DynamicStackViewHolder.this.getAdapterPosition()));
+                                (T) adapter.getItem(DynamicStackViewHolder.this.getAdapterPosition()));
 
                     }
 
@@ -100,8 +102,14 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
         }
     }
 
-    float calculateHeightPercentage() {
-        percentage = itemView.getLayoutParams().height / (adapter.container.getHeight() - adapter.marginPixels);
+    BigDecimal calculateHeightPercentage() {
+        BigDecimal vhHeight = new BigDecimal(Integer.toString(itemView.getLayoutParams().height)).setScale(4, RoundingMode.CEILING);
+        BigDecimal cHeight = new BigDecimal(Integer.toString(adapter.container.getHeight())).setScale(4, RoundingMode.CEILING);
+        BigDecimal margin = new BigDecimal(Integer.toString(adapter.marginPixels)).setScale(4, RoundingMode.CEILING);
+        percentage = vhHeight.divide(cHeight.subtract(margin), BigDecimal.ROUND_HALF_UP).setScale(4, RoundingMode.CEILING);
+
+        Log.e("TEST", "PERCENTAGE: " + percentage);
+
         return percentage;
     }
 
@@ -121,8 +129,13 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
      * @param position the position of the ViewHolder
      * @param object   the object at the position
      */
-    void updateOnResizeInternal(int position, Object object) {
-        updateOnResize(position, object, calculateHeightPercentage());
+    void updateOnResizeInternal(int position, T object) {
+        updateOnResize(position, object, calculateHeightPercentage().floatValue());
+    }
+
+    void updateOnResizeInternalWithPercentage(int position, T object, float percentage) {
+        this.percentage = new BigDecimal(percentage);
+        updateOnResize(position, object, percentage);
     }
 
     /**
@@ -132,7 +145,7 @@ public abstract class DynamicStackViewHolder extends RecyclerView.ViewHolder imp
      * @param object             the object at the position
      * @param itemViewPercentage the percentage [0.0,1.0] of the views height in relation to the recyclerViews height
      */
-    public abstract void updateOnResize(int position, Object object, float itemViewPercentage);
+    public abstract void updateOnResize(int position, T object, float itemViewPercentage);
 
     @Override
     public void onItemSelected() {
