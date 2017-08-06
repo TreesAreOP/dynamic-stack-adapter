@@ -28,11 +28,11 @@ public class DynamicStackSaveManager {
         percentageOfItems = new String[maxItems];
     }
 
-    static void setPercentageOfPosition(int position, BigDecimal percentage) {
+    public static void setPercentageOfPosition(int position, BigDecimal percentage) {
         percentageOfItems[position] = percentage.toPlainString();
     }
 
-    static BigDecimal getPercentageOfPosition(int position) {
+    public static BigDecimal getPercentageOfPosition(int position) {
         return new BigDecimal(percentageOfItems[position]);
     }
 
@@ -66,24 +66,25 @@ public class DynamicStackSaveManager {
                 for (int i = 0; i < adapter.getItemCount(); i++) {
                     BigDecimal percentage = getPercentageOfPosition(i);
 
-
                     DynamicStackViewHolder vh = (DynamicStackViewHolder) adapter.container.findViewHolderForAdapterPosition(i);
 
-                    vh.percentage = percentage;
+                    if (vh != null) {
+                        vh.percentage = percentage;
 
-                    BigDecimal minHeightBD = new BigDecimal(adapter.minHeightPX).setScale(4, BigDecimal.ROUND_HALF_UP);
-                    BigDecimal containerBD = new BigDecimal(adapter.container.getHeight()).setScale(4, BigDecimal.ROUND_HALF_UP);
-                    BigDecimal marginBD = new BigDecimal(adapter.marginPixels).setScale(4, BigDecimal.ROUND_HALF_UP);
+                        BigDecimal minHeightBD = new BigDecimal(adapter.minHeightPX).setScale(4, BigDecimal.ROUND_HALF_UP);
+                        BigDecimal containerBD = new BigDecimal(adapter.container.getHeight()).setScale(4, BigDecimal.ROUND_HALF_UP);
+                        BigDecimal marginBD = new BigDecimal(adapter.marginPixels).setScale(4, BigDecimal.ROUND_HALF_UP);
 
-                    BigDecimal minPercentage = minHeightBD.divide(containerBD.subtract(marginBD), BigDecimal.ROUND_HALF_UP).setScale(4, RoundingMode.HALF_UP);
+                        BigDecimal minPercentage = minHeightBD.divide(containerBD.subtract(marginBD), BigDecimal.ROUND_HALF_UP).setScale(4, RoundingMode.HALF_UP);
 
-                    BigDecimal newHeight = percentage.multiply(containerBD.subtract(marginBD));
+                        BigDecimal newHeight = percentage.multiply(containerBD.subtract(marginBD));
 
-                    vh.itemView.getLayoutParams().height = percentage.compareTo(minPercentage) <= 0 ? adapter.minHeightPX : newHeight.intValue();
-                    vh.itemView.requestLayout();
-                    vh.isExpanded = vh.itemView.getLayoutParams().height > adapter.minHeightPX;
+                        vh.itemView.getLayoutParams().height = percentage.compareTo(minPercentage) <= 0 ? adapter.minHeightPX : newHeight.intValue();
+                        vh.itemView.requestLayout();
+                        vh.isExpanded = vh.itemView.getLayoutParams().height > adapter.minHeightPX;
 
-                    heightOfAllItems += vh.itemView.getLayoutParams().height;
+                        heightOfAllItems += vh.itemView.getLayoutParams().height;
+                    }
                 }
 
                 DynamicStackViewHolder vh = (DynamicStackViewHolder) adapter.container.findViewHolderForAdapterPosition(adapter.getItemCount() - 1);
@@ -125,6 +126,5 @@ public class DynamicStackSaveManager {
         percentageOfItems[fromPosition] = tmpTo;
         percentageOfItems[toPosition] = tmpFrom;
     }
-
 
 }

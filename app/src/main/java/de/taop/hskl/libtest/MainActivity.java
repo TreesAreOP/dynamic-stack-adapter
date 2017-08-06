@@ -4,13 +4,10 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
-import java.util.Objects;
-import java.util.Random;
 
 import de.taop.hskl.dynamicStackAdapter.DynamicStackAdapter;
 import de.taop.hskl.dynamicStackAdapter.DynamicStackBuilder;
@@ -39,9 +36,6 @@ public class MainActivity extends AppCompatActivity {
                 .provideResizeAreaID(R.id.resize)
                 .setPixelPadding(0)
                 .build();
-
-       // if (savedInstanceState == null)
-            //adapter.addItemRange(new Data(), new Data(), new Data(), new Data());
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.floatingActionButton);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -84,8 +78,6 @@ class MyAdapter extends DynamicStackAdapter<Data, MyViewHolder> {
     public void withBindViewHolder(MyViewHolder myViewHolder, int i, Data data) {
         myViewHolder.text.setText(data.text);
 
-        //myViewHolder.itemView.getLayoutParams().height += new Random().nextInt(300);
-        //myViewHolder.itemView.requestLayout();
     }
 }
 

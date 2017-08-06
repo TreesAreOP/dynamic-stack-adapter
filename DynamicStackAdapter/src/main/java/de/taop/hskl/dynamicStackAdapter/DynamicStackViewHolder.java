@@ -25,6 +25,7 @@ public abstract class DynamicStackViewHolder<T> extends RecyclerView.ViewHolder 
 
     public boolean isExpanded = false;
     boolean allowUserResize;
+
     BigDecimal percentage;
     private View dynamicItemResize;
 
@@ -107,9 +108,6 @@ public abstract class DynamicStackViewHolder<T> extends RecyclerView.ViewHolder 
         BigDecimal cHeight = new BigDecimal(Integer.toString(adapter.container.getHeight())).setScale(4, RoundingMode.CEILING);
         BigDecimal margin = new BigDecimal(Integer.toString(adapter.marginPixels)).setScale(4, RoundingMode.CEILING);
         percentage = vhHeight.divide(cHeight.subtract(margin), BigDecimal.ROUND_HALF_UP).setScale(4, RoundingMode.CEILING);
-
-        Log.e("TEST", "PERCENTAGE: " + percentage);
-
         return percentage;
     }
 
@@ -156,4 +154,9 @@ public abstract class DynamicStackViewHolder<T> extends RecyclerView.ViewHolder 
     public void onItemClear() {
         //itemView.setBackgroundColor(0);
     }
+
+    public BigDecimal getPercentage() {
+        return percentage;
+    }
+
 }

@@ -2,9 +2,11 @@ package de.taop.hskl.dynamicStackAdapter;
 
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -26,8 +28,8 @@ import de.taop.hskl.dynamicStackAdapter.helpers.SimpleItemTouchHelperCallback;
 public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> extends RecyclerView.Adapter<VH>
         implements ItemTouchHelperAdapter {
 
-    public RecyclerView container;
-    protected SimpleItemTouchHelperCallback callback;
+    RecyclerView container;
+    SimpleItemTouchHelperCallback callback;
     int minHeightPX;
     int marginPixels;
     int maxItems;
@@ -42,6 +44,16 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     private Class<? extends DynamicStackViewHolder> holderClass;
     private VH vh;
 
+    public int getParentHeight() {
+        return parentHeight;
+    }
+
+    public int getMinHeightPX() {
+        return minHeightPX;
+    }
+
+    private int parentHeight;
+
     protected DynamicStackAdapter(final RecyclerView container, Class<VH> holderClass) {
         dataSet = new ArrayList<>();
         this.container = container;
@@ -55,10 +67,11 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
 
         expandedNotSuitableItems = new ArrayList<>();
 
-        container.post(new Runnable() {
+        container.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
-            public void run() {
-                minHeightPX = (int) ((container.getHeight() - marginPixels) / (float) maxItems);
+            public void onGlobalLayout() {
+                parentHeight = (container.getHeight() - marginPixels);
+                minHeightPX = (int) (parentHeight / (float) maxItems);
             }
         });
     }
@@ -110,8 +123,6 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     public void onBindViewHolder(final VH holder, final int position) {
         final T object = dataSet.get(position);
 
-        withBindViewHolder(holder, position, object);
-
         final boolean wasSaved = DynamicStackSaveManager.positionWasSavedBefore(position);
 
         holder.itemView.post(new Runnable() {
@@ -125,6 +136,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
             }
         });
 
+        withBindViewHolder(holder, position, object);
 
     }
 
@@ -244,14 +256,14 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
         }
 
 
-        return (heightOfAllItems + minHeightPX) <= (container.getHeight() - marginPixels);
+        return (heightOfAllItems + minHeightPX) <= (parentHeight);
     }
 
     private boolean fitNewItemAndAdjustHeight() {
         float accumulatedHeight = 0f;
 
         if (!fitNewItem()) {
-            double extraHeight = heightOfAllItems + minHeightPX - (container.getHeight() - marginPixels);
+            double extraHeight = heightOfAllItems + minHeightPX - (parentHeight);
             expandedNotSuitableItems.clear();
             for (int i = 0; i < getItemCount(); i++) {
                 VH itemHolder = (VH) container.findViewHolderForAdapterPosition(i);
