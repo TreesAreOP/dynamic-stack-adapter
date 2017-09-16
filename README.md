@@ -19,7 +19,7 @@ And then add the dependency
 ```
 		dependencies {
 		...
-		compile 'com.github.TreesAreOp:dynamic-stack-adapter:v0.3-alpha'
+		compile 'com.github.TreesAreOp:dynamic-stack-adapter:CURRENT_VERSION'
 	}
 ```
 
