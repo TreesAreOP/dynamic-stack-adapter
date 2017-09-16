@@ -10,6 +10,7 @@ import android.view.ViewTreeObserver;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import de.taop.hskl.dynamicStackAdapter.helpers.ItemTouchHelperAdapter;
@@ -320,11 +321,13 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
 
     @Override
     public void onItemMove(int fromPosition, int toPosition) {
-        T prev = dataSet.remove(fromPosition);
-        dataSet.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
+        //T prev = dataSet.remove(fromPosition);
+        //dataSet.add(toPosition > fromPosition ? toPosition - 1 : toPosition, prev);
+
+        Collections.swap(dataSet, fromPosition, toPosition);
         DynamicStackSaveManager.swapSavedPosition(fromPosition, toPosition);
         notifyItemMoved(fromPosition, toPosition);
-    }
 
+    }
 
 }

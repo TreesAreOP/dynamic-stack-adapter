@@ -47,14 +47,14 @@ public abstract class DynamicStackViewHolder<T> extends RecyclerView.ViewHolder 
 
                 @Override
                 public boolean onTouch(View view, MotionEvent me) {
-                    if (!allowUserResize)
+                    if (!allowUserResize || adapter.container == null)
                         return true;
                     if (me.getAction() == MotionEvent.ACTION_DOWN) {
                         origY = me.getY();
 
                         accumulatedHeight = 0f;
                         for (int i = 0; i < adapter.getItemCount(); i++) {
-                            if (i != getAdapterPosition()) {
+                            if (i != getAdapterPosition() && adapter.container.findViewHolderForAdapterPosition(i) != null) {
                                 View item = adapter.container.findViewHolderForAdapterPosition(i).itemView;
                                 accumulatedHeight += item.getHeight();
                             }
@@ -144,16 +144,6 @@ public abstract class DynamicStackViewHolder<T> extends RecyclerView.ViewHolder 
      * @param itemViewPercentage the percentage [0.0,1.0] of the views height in relation to the recyclerViews height
      */
     public abstract void updateOnResize(int position, T object, float itemViewPercentage);
-
-    @Override
-    public void onItemSelected() {
-        //itemView.getBackground().setTint();
-    }
-
-    @Override
-    public void onItemClear() {
-        //itemView.setBackgroundColor(0);
-    }
 
     public BigDecimal getPercentage() {
         return percentage;

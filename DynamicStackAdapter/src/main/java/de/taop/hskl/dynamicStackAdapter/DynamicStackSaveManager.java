@@ -100,7 +100,7 @@ public class DynamicStackSaveManager {
     }
 
 
-    static boolean positionWasSavedBefore(int position) {
+    public static boolean positionWasSavedBefore(int position) {
         return percentageOfItems[position] != null;
     }
 
@@ -121,10 +121,9 @@ public class DynamicStackSaveManager {
     }
 
     static void swapSavedPosition(int fromPosition, int toPosition) {
-        String tmpFrom = percentageOfItems[fromPosition];
-        String tmpTo = percentageOfItems[toPosition];
-        percentageOfItems[fromPosition] = tmpTo;
-        percentageOfItems[toPosition] = tmpFrom;
+        String tmp = percentageOfItems[fromPosition];
+        percentageOfItems[fromPosition] = percentageOfItems[toPosition];
+        percentageOfItems[toPosition] = tmp;
     }
 
 }

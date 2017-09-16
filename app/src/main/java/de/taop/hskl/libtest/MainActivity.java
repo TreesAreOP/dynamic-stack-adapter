@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
                 .withItemLayoutID(R.layout.item_layout)
                 .allowUserResizingItems(true)
                 .setAutoResizeItems(true)
+                .allowUserDeleteItems(false)
                 .provideResizeAreaID(R.id.resize)
                 .setPixelPadding(0)
                 .build();
@@ -79,6 +80,7 @@ class MyAdapter extends DynamicStackAdapter<Data, MyViewHolder> {
         myViewHolder.text.setText(data.text);
 
     }
+
 }
 
 class MyViewHolder extends DynamicStackViewHolder<Data> {
@@ -102,4 +104,23 @@ class MyViewHolder extends DynamicStackViewHolder<Data> {
     }
 
 
+    @Override
+    public void onItemSelected() {
+
+    }
+
+    @Override
+    public void onItemStartDrag() {
+
+    }
+
+    @Override
+    public void onItemStartSwipe() {
+
+    }
+
+    @Override
+    public void onItemClear() {
+
+    }
 }
