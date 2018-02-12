@@ -317,6 +317,7 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
     @Override
     public void onItemDismiss(int position) {
         removeItem(position);
+        itemWasDismissed(position);
     }
 
     @Override
@@ -328,6 +329,10 @@ public abstract class DynamicStackAdapter<T, VH extends DynamicStackViewHolder> 
         DynamicStackSaveManager.swapSavedPosition(fromPosition, toPosition);
         notifyItemMoved(fromPosition, toPosition);
 
+        itemWasMoved(fromPosition, toPosition);
     }
+
+    public abstract void itemWasDismissed(int position);
+    public abstract void itemWasMoved(int fromPosition, int toPosition);
 
 }

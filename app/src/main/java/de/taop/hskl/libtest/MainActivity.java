@@ -81,6 +81,16 @@ class MyAdapter extends DynamicStackAdapter<Data, MyViewHolder> {
 
     }
 
+    @Override
+    public void itemWasDismissed(int position) {
+
+    }
+
+    @Override
+    public void itemWasMoved(int fromPosition, int toPosition) {
+
+    }
+
 }
 
 class MyViewHolder extends DynamicStackViewHolder<Data> {
